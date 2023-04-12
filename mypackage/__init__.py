@@ -3,7 +3,7 @@ import argparse
 import subprocess
 import os.path
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("ip", help="IP address")
     parser.add_argument("folder", help="Project folder")
@@ -12,7 +12,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.remote is None:
-        args.remote = "~/" + os.path.basename(args.folder)
+        args.remote = "/home/" + args.user + "/" + os.path.basename(args.folder)
+    args.remote_parent = os.path.dirname(args.remote)
 
     # check if vscode is installed
     if not os.path.exists("/usr/bin/code"):
@@ -25,7 +26,9 @@ if __name__ == "__main__":
         exit(1)
 
     # rsync local folder to remote
-    subprocess.run(["rsync", "-urazvh", "--delete", args.folder, args.user + "@" + args.ip + ":" + args.remote])
+    print("rsync -uraz --delete " + args.folder + " " + args.user + "@" + args.ip + ":" + args.remote_parent + "/")
+    subprocess.run(["rsync", "-uraz", "--delete", args.folder, args.user + "@" + args.ip + ":" + args.remote_parent + "/"])
 
     # start vscode
+    print("code --remote ssh-remote+" + args.user + "@" + args.ip + " " + args.remote)
     subprocess.run(["code", "--remote", "ssh-remote+" + args.user + "@" + args.ip, args.remote])
