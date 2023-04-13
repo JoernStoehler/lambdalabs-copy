@@ -61,7 +61,7 @@ def main():
     
     if args.reverse:
         # rsync remote folder to local
-        cmd = ["rsync", "-uraz", "--delete", args.user + "@" + args.ip + ":" + args.remote, args.local_parent + "/"]
+        cmd = ["rsync", "-uraz", "--delete", f"ssh -p {args.port}", args.user + "@" + args.ip + ":" + args.remote, args.local_parent + "/"]
         print(" ".join(cmd))
         subprocess.run(cmd)
 
