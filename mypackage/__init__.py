@@ -6,6 +6,7 @@ import os.path
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("ip", help="IP address")
+    parser.add_argument("--port", "-p", help="Port", default="22")
     parser.add_argument("local", help="Local folder")
     parser.add_argument("remote", help="Remote folder", nargs='?', default=None)
     parser.add_argument("--user", "-u", help="Remote user", default="ubuntu")
@@ -31,7 +32,7 @@ def main():
 
     if args.reverse:
         # check if remote folder exists
-        cmd = ["ssh", args.user + "@" + args.ip, "test -d " + args.remote]
+        cmd = ["ssh", args.user + "@" + args.ip, "-p", args.port, "test -d " + args.remote]
         print(" ".join(cmd))
         if subprocess.run(cmd).returncode != 0:
             print("Error: remote folder does not exist")
@@ -39,7 +40,7 @@ def main():
 
     if not args.reverse:
         # rsync local folder to remote
-        cmd = ["rsync", "-uraz", "--delete", args.local, args.user + "@" + args.ip + ":" + args.remote_parent + "/"]
+        cmd = ["rsync", "-uraz", "--delete", "-e", f"ssh -p {args.port}", args.local, args.user + "@" + args.ip + ":" + args.remote_parent + "/"]
         print(" ".join(cmd))
         subprocess.run(cmd)
     
@@ -50,9 +51,13 @@ def main():
             exit(1)
 
         # start vscode
-        cmd = ["code", "--remote", "ssh-remote+" + args.user + "@" + args.ip, args.remote]
-        print(" ".join(cmd))
-        subprocess.run(cmd)
+        if args.port != "22":
+            print("cannot start vscode with non-standard port")
+            print("please start vscode manually")
+        else:
+            cmd = ["code", "--remote", "ssh-remote+" + args.user + "@" + args.ip, args.remote]
+            print(" ".join(cmd))
+            subprocess.run(cmd)
     
     if args.reverse:
         # rsync remote folder to local
